@@ -8,15 +8,18 @@ contract FundMe {
     uint256 public constant MININUM_USD_VALUE = 50 * 1e18;
     address[] public funders;
     mapping(address => uint256) addressToAmount;
-    adress public immutable i_owner;
+    address public immutable i_owner;
+    AggregatorV3Interface private priceFeedContract;
 
-    constructor() {
+    constructor(address networkAddress) {
+        priceFeedContract = AggregatorV3Interface(networkAddress);
+
         i_owner = msg.sender;
     }
 
     function fund() public payable {
         require(
-            msg.value.getConversionRate() >= MININUM_USD_VALUE,
+            msg.value.getConversionRate(priceFeedContract) >= MININUM_USD_VALUE,
             "Didnt sent enough ETH"
         );
         funders.push(msg.sender);
@@ -24,15 +27,13 @@ contract FundMe {
     }
 
     function widthDraw() public onlyOwner {
-        for (int i = 0; i < funders.length(); i++) {
+        for (uint i = 0; i < funders.length; i++) {
             address funderAddress = funders[i];
             addressToAmount[funderAddress] = 0;
         }
         funders = new address[](0);
-
         // withdraw the balance to the owner
         // -----------------------------------------
-
         // msg.sender is the address that call the widthDraw function
         // address(this).balance is the balance(funds) of the contract
         // 3 ways can transfer native currency to a address
@@ -42,7 +43,7 @@ contract FundMe {
         // bool isSuccess = payable(msg.sender.send(address(this).balance));
         // require(isSuccess, "Failed to send the funds");
         // call
-        (bool isSucessCall /**return from calling func */, ) = payable(
+        (bool isSucessCall, ) = (
             msg.sender.call{value: address(this).balance}("")
         );
         require(isSucessCall, "Failed to send the funds");
@@ -56,7 +57,7 @@ contract FundMe {
         _;
     }
 
-// route to fund() function
+    // route to fund() function
     receive() external payable {
         fund();
     }
