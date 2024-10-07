@@ -3,6 +3,7 @@ import { DeployFunction } from "hardhat-deploy/types";
 
 import { network } from "hardhat";
 import { developmentChainsID, networkConfig } from "../hardhat-helper-config";
+import { verify } from "../utils/verify";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts } = hre;
@@ -18,12 +19,18 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       networkConfig[chainId as keyof typeof networkConfig].ethPriceFeedAddress;
   }
   console.log(ethUsdPriceFeedAddress);
-
+  const args = [ethUsdPriceFeedAddress];
   const fundMe = await deploy("FundMe", {
     from: deployer,
     // ARGS for the constructor of the contract fundMe
-    args: [ethUsdPriceFeedAddress],
+    args: args,
     log: true,
+    waitConfirmations: 1,
   });
+
+  if (!developmentChainsID.includes(chainId) && process.env.ETHERSCAN_API_KEY) {
+    await verify(fundMe.address, args);
+  }
 };
+func.tags = ["all", "fundMe"];
 export default func;

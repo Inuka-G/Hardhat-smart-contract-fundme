@@ -1,15 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 import "./PriceConverter.sol";
-error NotOwner();
+error fundMe__NotOwner();
 
+/**
+ * @title FundMe
+ * @dev The FundMe contract has a minimum value of 50 USD to fund the contract.
+ *
+ * @author inukaG on behalf of Axion chain labs
+ */
 contract FundMe {
     using PriceConverter for uint256;
     uint256 public constant MININUM_USD_VALUE = 50 * 1e18;
     address[] public funders;
     mapping(address => uint256) addressToAmount;
     address public immutable i_owner;
-    AggregatorV3Interface private priceFeedContract;
+    AggregatorV3Interface public priceFeedContract;
 
     constructor(address networkAddress) {
         priceFeedContract = AggregatorV3Interface(networkAddress);
@@ -53,7 +59,7 @@ contract FundMe {
         // require(msg.sender == i_owner, "You are not the owner");
 
         // for more gas optimization use this
-        if (msg.sender != i_owner) revert NotOwner();
+        if (msg.sender != i_owner) revert fundMe__NotOwner();
         _;
     }
 

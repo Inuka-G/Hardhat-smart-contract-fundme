@@ -1,7 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 import { developmentChainsID } from "../hardhat-helper-config";
-
 const DECIMALS = "18";
 const INITIAL_PRICE = "2000000000000000000000"; // 2000
 const deployMocks: DeployFunction = async function (
